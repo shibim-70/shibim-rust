@@ -1,0 +1,33 @@
+song = { meta_section? ~ section+ ~ EOI}
+meta_section = {((meta_line | WS*) ~ NEWLINE)* ~ meta_line?}
+meta_line = {!"@" ~ !(WS* ~ (NEWLINE|EOI)) ~ meta_id ~ WS* ~ ":" ~ WS* ~ meta_value}
+meta_id = {(ASCII_ALPHANUMERIC | "_")+}
+meta_value = {(!NEWLINE ~ ANY)+}
+section = {section_head  ~ ( ( NEWLINE~(line_br|line))|(NEWLINE ~ WS*) )*}
+section_head = {"@"~section_id~ (WS+ ~section_title)?}
+section_id = { LETTER ~ (NUMBER)+ ~ LETTER*}
+section_title = { (!(NEWLINE) ~ ANY)+ }
+
+line = {  !"@" ~  !(WS* ~ (NEWLINE|EOI)) ~ (bar~"|")* ~ bar? }
+line_br = { "---" ~ (!(NEWLINE|EOI) ~ ANY)* } 
+bar = { (block~"`")* ~ block?}
+block = { chord_block ~ "·" ~ (lyric_block | empty_block) | lyric_block | empty_block }
+empty_block = _{ WS*}
+lyric_block = {  !(WS+ ~ delim)  ~ (!(delim) ~ ANY)+ }
+chord_block = { WS* ~ ((parens|chord|melody|nonchord) ~ WS*)* }
+
+chord = {root ~ min? ~ ext? ~ bass?}
+parens = {"(" | ")"}
+melody = {"[" ~ (root ~ WS*)+ ~ "]"}
+nonchord = { (LETTER | NUMBER | "(" | ")" )+}
+root = {'A'..'G' ~ ("#" | "b")? }
+min = { "m" }
+ext = { (ext_keywords|ext_unk_text|ext_alt)+ }
+ext_keywords = {"sus4"|"sus2"|"dim"|"aug"|"maj"|"Maj"|"13"|"11"|"7"|"M"|"°"|"+"|"-"}
+ext_unk_text = {(ASCII_ALPHANUMERIC)+}
+ext_alt = { "(" ~ (ASCII_ALPHANUMERIC| "#" | "b" )+ ~ ")" }
+bass = { "/" ~ root }
+
+delim = {"|" | "`" | "·" | NEWLINE}
+
+WS = _{SPACE_SEPARATOR}

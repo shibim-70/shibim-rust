@@ -2,14 +2,18 @@
 use crate::data::*;
 markup::define!{
 
+    HeadHTML(){
+        head{
+            meta [charset ="utf-8"];
+            meta [name="viewport", content="width=device-width, initial-scale=1.0"];
+            link [rel="stylesheet", href="../css/style.css"];
+        }
+    }
+
     SonglistPageHTML<'i>(songlist: &'i Vec<Song<'i>>){
         {markup::doctype()}
         html {
-            head{
-                meta [charset ="utf-8"];
-                meta [name="viewport", content="width=device-width, initial-scale=1.0"];
-                link [rel="stylesheet", href="../css/style.css"];
-            }
+            {HeadHTML{}}
             body{
                @for song in *songlist{
                    {SongHTML{ song : song }}
@@ -18,14 +22,25 @@ markup::define!{
         }
     }
 
+    SongIndexHTML<'i>(index : &'i Vec<IndexEntry>){
+        html{
+            {HeadHTML{}}
+            body{
+                ul{
+                    @for entry in index.iter(){
+                        li{
+                            a [href=&entry.path]{ {entry.name} }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     SongPageHTML<'i>(song: &'i Song<'i>){
         {markup::doctype()}
         html {
-            head{
-                meta [charset ="utf-8"];
-                meta [name="viewport", content="width=device-width, initial-scale=1.0"];
-                link [rel="stylesheet", href="../css/style.css"];
-            }
+            {HeadHTML{}}
             body{
                 {SongHTML{song : song}}
             }
@@ -130,7 +145,7 @@ markup::define!{
                         "M" | "Maj" | "maj" =>{
                             {"Δ"}
                         }
-                        "sus4" | "sus2" | "13" | "11"=>{
+                        "sus4" | "sus2" | "add4"| "add2" |"13" | "11" | "7" =>{
                             span .c { {s} }
                         }
                         _ => { {s} }
@@ -158,8 +173,8 @@ markup::define!{
                 ChordItem::Chord(c) => { {ChordHTML{ chord: c} } @if !antecedes_parens {" "} }
                 ChordItem::Melody(_v) => { /*TODO*/ }
                 ChordItem::Nonmusic(s) => { {s}  @if !antecedes_parens {" "} }
-                ChordItem::ParensClose => { "("  }
-                ChordItem::ParensOpen => { ")" }
+                ChordItem::ParensClose => { ")"  }
+                ChordItem::ParensOpen => { "(" }
             }
         }
     }

@@ -64,7 +64,7 @@ impl Config{
     }
 }
 
-fn process_shb_folder(dir : &path::Path, out_html : &path::Path, out_bin : &path::Path)->Result<(),Box<dyn std::error::Error>>{
+fn process_shb_folder(dir : &path::Path, out_html : &path::Path, out_bin : &path::Path)->Result<Vec<IndexEntry>,Box<dyn std::error::Error>>{
     if !out_html.is_dir() {
         return Err("Output directory not a directory")?;
     }
@@ -83,6 +83,8 @@ fn process_shb_folder(dir : &path::Path, out_html : &path::Path, out_bin : &path
         return None;
     });
 
+    let mut index = Vec::new();
+
     for entry in entries{
         let filename = entry.file_name();
         if let Some(fname) = filename.and_then(|f|f.to_str() ){
@@ -96,20 +98,14 @@ fn process_shb_folder(dir : &path::Path, out_html : &path::Path, out_bin : &path
         let mut out_bin = out_bin.join(filename);
         out_bin.set_extension("cbor");
         match process_shb_file(&entry, &out_html, &out_bin){
-            Ok(()) => {println!("Ok")}
+            Ok(entry) => {
+                println!("Ok");
+                index.push(entry);
+            }
             Err(e) => {println!("Error:\n {}",e)}
         }
-        
-
-        /*
-        let filename = entry.file_name().and_then(|f|f.to_str() );
-        if let Some(fname) = filename{
-            println!("Parsing {}",fname);
-        }else{
-            println!("Parsing <Invalid utf-8 filename>");
-        }*/
     }
-    return Ok(());
+    return Ok(index);
 }
 
 
@@ -151,16 +147,25 @@ fn process_lst_folder(dir : &path::Path, out_html : &path::Path, in_bin : &path:
     return Ok(());
 }
 
+fn process_index(file_out : &path::Path, index : Vec<IndexEntry>)->Result<(),Box<dyn std::error::Error>>{
+    let mut file = fs::File::create(file_out)?;
+    write!(file,"{}",html::SongIndexHTML{index : &index});
+    Ok(())
+}
 
-fn process_shb_file(file : &path::Path, out_html : &path::Path, out_bin : &path::Path)->Result<(),Box<dyn std::error::Error>>{
+fn process_shb_file(file : &path::Path, out_html : &path::Path, out_bin : &path::Path)->Result<IndexEntry,Box<dyn std::error::Error>>{
     let file_shb = fs::read_to_string(file)?;
     let tree = parse_shb(&file_shb)?;
+    let entry = IndexEntry{
+        name : String::from(tree.name),
+        path : String::from(out_html.strip_prefix("web/").unwrap().to_str().unwrap())//TODO: !important must remove harcoded path
+    };
     //tree.mut_chords(&|x| x.mut_transpose(1));
     let file_cbor = fs::File::create(out_bin)?;
     serde_cbor::to_writer(file_cbor, &tree)?;
     let mut file_html = fs::File::create(out_html)?;
     write!(file_html,"{}",html::SongPageHTML{song : &tree})?;
-    return Ok(());
+    return Ok(entry);
 }
 
 fn process_lst_file(file : &path::Path, out_html : &path::Path, bin_dir : &path::Path)->Result<(),Box<dyn std::error::Error>>{
@@ -212,11 +217,12 @@ fn parse_lst<'i>(contents : &'i str)->Result<Vec<SonglistEntry>,pest::error::Err
 fn main() -> Result<(), Box<dyn std::error::Error>>  {
     let args : Vec<String> = env::args().collect();
     if let Ok(config) = Config::new(&args){
-        process_shb_folder(&config.shb_src_dir, &config.song_out_dir, &config.bin_out_dir )?;
+        let index = process_shb_folder(&config.shb_src_dir, &config.song_out_dir, &config.bin_out_dir )?;
+        process_index(&config.work_dir.join("index.html"), index)?;
         process_lst_folder(&config.lst_src_dir, &config.list_out_dir, &config.bin_out_dir )?;
     }
 
-        Ok(())
+    Ok(())
 }
 
 

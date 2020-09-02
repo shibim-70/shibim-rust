@@ -1,6 +1,6 @@
 Work in progress. A tool to facilitate use of 'chord charts'
 
-This shall consist of several parts (in order of propority):
+This shall consist of several parts (in order of priority):
 
 - A language to quickly describe the chord charts and song lists
     - Songs are divided into sections

@@ -117,6 +117,11 @@ pub struct SonglistEntry{
     pub order : Option<Vec<String>>,
 }
 
+pub struct IndexEntry{
+    pub path : String,
+    pub name : String
+}
+
 //TODO, clean up these two functions
 pub fn tonic_to_u8 (s : &str) -> Option<u8>{
     let mut chars = s.char_indices();

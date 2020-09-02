@@ -15,6 +15,14 @@ const FLAT_TONIC_NAMES_HTML:[&str;12] = ["C","D<sup>b</sup>","D","E<sup>b</sup>"
                                         "G","A<sup>b</sup>","A","B<sup>b</sup>","B"];
 
                                     
+//To summarise this mess:
+//song -> [section]
+//section -> [lines]
+//lines -> [Bar<str>] | [Bar<ChordItems>]|[Bar<(str, [ChordItem] )>] | line_break
+//Bar<T> -> [T] | empty  //May replace this confusing one
+//ChordItem -> Chord | Melody | ...
+//Melody -> [ u8 ]
+
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename = "X")]
@@ -26,6 +34,7 @@ pub enum ChordExt<'i>{
     #[serde(rename = "u")] 
     Unknown(&'i str),
 }
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename = "C")]
 pub struct Chord<'i>{
@@ -63,6 +72,7 @@ pub enum Bar<T>{
     #[serde(rename = "|")] 
     Bar(Vec< T >)
 }
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename = "l")]
 pub enum Line<'i>{
@@ -77,6 +87,7 @@ pub enum Line<'i>{
     #[serde(rename = ",")] 
     Compound(Vec<Bar<(Vec<ChordItem<'i>>,&'i str)>>)
 }
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename = "s")]
 pub struct Section<'i>{
@@ -88,6 +99,7 @@ pub struct Section<'i>{
     #[serde(rename = "li")] 
     pub lines: Vec< Line<'i> >
 }
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename = "S")]
 pub struct Song<'i>{
@@ -95,11 +107,17 @@ pub struct Song<'i>{
     pub tonic: u8,
     pub sections: Vec< Section<'i> >,
     pub names: HashMap<String, usize>,
-    //The ugly duckling
     pub orders: HashMap<String, Vec< usize > >
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SonglistEntry{
+    pub id_file : String,
+    pub tonic : Option<u8>,
+    pub order : Option<Vec<String>>,
+}
 
+//TODO, clean up these two functions
 pub fn tonic_to_u8 (s : &str) -> Option<u8>{
     let mut chars = s.char_indices();
     let mut n;
@@ -126,6 +144,32 @@ pub fn tonic_to_u8 (s : &str) -> Option<u8>{
         None => {}
     }
     return Some(n as u8);
+}
+
+pub fn tonality_to_u8(s : &str) -> Option<u8>{
+    let base = tonic_to_u8(&s.to_ascii_uppercase());
+    if let Some(i) = base{
+        let mut c = s.chars();
+        let mut min : bool = false;
+
+        if matches!(c.next(),Some('m')){
+            min = true;
+        }
+        if matches!(c.next(),Some('m')){
+            min = true;
+        }
+        if min { Some ((i + 3) %12)} else { Some(i) }
+    }else{
+        None
+    }
+
+}
+
+pub fn tonality_default_sharp(t:u8)->bool{
+    match t{
+        5 | 10 | 3 | 8 => false,
+        _  => true
+    }
 }
 
 pub fn u8_to_tonic (i: u8, sharp: bool) -> &'static str {

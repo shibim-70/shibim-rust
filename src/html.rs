@@ -1,7 +1,23 @@
 
 use crate::data::*;
-//Its an horrendous mess, but hadn't I used this macro-ing, it would have taken ages
 markup::define!{
+
+    SonglistPageHTML<'i>(songlist: &'i Vec<Song<'i>>){
+        {markup::doctype()}
+        html {
+            head{
+                meta [charset ="utf-8"];
+                meta [name="viewport", content="width=device-width, initial-scale=1.0"];
+                link [rel="stylesheet", href="../css/style.css"];
+            }
+            body{
+               @for song in *songlist{
+                   {SongHTML{ song : song }}
+               }
+            }
+        }
+    }
+
     SongPageHTML<'i>(song: &'i Song<'i>){
         {markup::doctype()}
         html {

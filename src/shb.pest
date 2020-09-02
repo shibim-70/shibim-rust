@@ -5,7 +5,7 @@ meta_id = {(ASCII_ALPHANUMERIC | "_")+}
 meta_value = {(!NEWLINE ~ ANY)+}
 section = {section_head  ~ ( ( NEWLINE~(line_br|line))|(NEWLINE ~ WS*) )*}
 section_head = {"@"~section_id~ (WS+ ~section_title)?}
-section_id = { LETTER ~ (NUMBER)+ ~ LETTER*}
+section_id = { ASCII_ALPHA_UPPER ~ (NUMBER)+ ~ LETTER*}
 section_title = { (!(NEWLINE) ~ ANY)+ }
 
 line = {  !"@" ~  !(WS* ~ (NEWLINE|EOI)) ~ (bar~"|")* ~ bar? }

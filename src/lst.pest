@@ -1,0 +1,9 @@
+list = { SOI ~ line ~ (NEWLINE ~ line)* ~ (WS|NEWLINE)* ~ EOI }
+line = { (song_name | "\"" ~ song_name_lit ~ "\"") ~ WS* ~ desc* }
+song_name = { (!(NEWLINE| "@" | "\"" | "|" | WS) ~ ANY)+ }
+song_name_lit = { (!(NEWLINE | "\"" | "|") ~ ANY)+ }
+desc = {"|" ~WS* ~desc_id~WS*~":"~WS*~(desc_val|"\"" ~ desc_val_lit ~ "\"")~WS*}
+WS = _{" " | "\t"}
+desc_id = {ASCII_ALPHANUMERIC+}
+desc_val_lit = {(!(NEWLINE | "\"" | "|") ~ ANY)+}
+desc_val = {(!(NEWLINE | "\"" | "|" | WS) ~ ANY)+}

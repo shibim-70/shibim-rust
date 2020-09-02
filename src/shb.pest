@@ -16,7 +16,10 @@ empty_block = _{ WS*}
 lyric_block = {  !(WS+ ~ delim)  ~ (!(delim) ~ ANY)+ }
 chord_block = { WS* ~ ((parens|chord|melody|nonchord) ~ WS*)* }
 
-chord = {root ~ min? ~ ext? ~ bass?}
+chord = {time? ~ root ~ min? ~ ext? ~ bass?}
+time = {time_num ~ time_ext?}
+time_num = {ASCII_DIGIT{1,2}}
+time_ext = {"'"|"+"~time_num~","~time_num}
 parens = {"(" | ")"}
 melody = {"[" ~ (root ~ WS*)+ ~ "]"}
 nonchord = { (LETTER | NUMBER | "(" | ")" )+}

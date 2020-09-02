@@ -69,9 +69,7 @@ markup::define!{
                 }
             }
             @for line in &section.lines{
-                div ."u-l"{
                     {LineHTML{line : line } }
-                }
             }
         }
     }
@@ -79,51 +77,57 @@ markup::define!{
         @match line{
             Line::Hr => { hr; }
             Line::Lyric(vec) => {
-                @for bar in vec{
-                    span ."u-b" {
-                        @if let Bar::Bar(blocks) = bar {
-                            span ."u-o" {
-                                pre {{blocks.join("")}}
+                div ."u-l"{
+                    @for bar in vec{
+                        span ."u-b" {
+                            @if let Bar::Bar(blocks) = bar {
+                                span ."u-o" {
+                                    pre {{blocks.join("")}}
+                                }
+                            }else{
+                                span ."u-o"{}
                             }
-                        }else{
-                            span ."u-o"{}
                         }
                     }
                 }
             }
             Line::Chord(vec) =>{
-                @for bar in vec{
-                    span ."u-b" {
-                        @if let Bar::Bar(blocks) = bar {
-                            span ."u-o" {
-                                @for block in blocks{
-                                    mark{
-                                        { ChordBlockHTML{ chord_block : block } }
+                div ."u-l"{
+                    @for bar in vec{
+                        span ."u-b" {
+                            @if let Bar::Bar(blocks) = bar {
+                                span ."u-o" {
+                                    @for block in blocks{
+                                        mark{
+                                            { ChordBlockHTML{ chord_block : block } }
+                                        }
                                     }
                                 }
+                            }else{
+                                span ."u-o"{}
                             }
-                        }else{
-                            span ."u-o"{}
                         }
                     }
                 }
             }
             Line::Compound(vec) => {
-                @for bar in vec{
-                    span ."u-b"{
-                        @if let Bar::Bar(blocks) = bar {
-                            @for block in blocks{
-                                    span ."u-o" {
-                                    mark{
-                                        { ChordBlockHTML{ chord_block : &block.0 } }
-                                    }
-                                    pre{
-                                        {block.1}
-                                    }
-                                    }
+                div ."u-l"{
+                    @for bar in vec{
+                        span ."u-b"{
+                            @if let Bar::Bar(blocks) = bar {
+                                @for block in blocks{
+                                        span ."u-o" {
+                                        mark{
+                                            { ChordBlockHTML{ chord_block : &block.0 } }
+                                        }
+                                        pre{
+                                            {block.1}
+                                        }
+                                        }
+                                }
+                            }else{
+                                span ."u-o"{}
                             }
-                        }else{
-                            span ."u-o"{}
                         }
                     }
                 }
@@ -132,6 +136,21 @@ markup::define!{
     }
 
     ChordHTML<'i>(chord : &'i Chord<'i>){
+        @if let Some(time) = &chord.time{
+            span ."u-t"{
+                {{time.beat}}
+                @if time.den == 0{
+
+                }else if time.den == 2 && time.num == 1{
+                    {"*"}
+                }else{
+                    span {
+                        sup {{time.num}}
+                        sub {{time.den}}
+                    }
+                }
+            }
+        }
         u .r { {markup::raw(u8_to_tonic_html(chord.root,true))} }
         @if chord.min {
             {"m"}

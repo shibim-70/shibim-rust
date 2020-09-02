@@ -488,7 +488,8 @@ fn mk_chord_symbol (tree : pest::iterators::Pair<shb::Rule>) -> Chord{
         root: 0,
         min: false,
         bass: 0,
-        ext: Vec::new()
+        ext: Vec::new(),
+        time: None
     };
 
     for chord_part in tree.into_inner(){
@@ -522,6 +523,27 @@ fn mk_chord_symbol (tree : pest::iterators::Pair<shb::Rule>) -> Chord{
                     Some(i) => i,
                     _ => panic!("Unhandled chord root name '{}'",root_bass.as_str())
                 };
+            },
+            shb::Rule::time => {
+                let mut time_it = chord_part.into_inner();
+                //It is safe for ASCII_DIGIT{1,2}
+                let beat = time_it.next().unwrap().as_str().parse::<u8>().unwrap();
+                let mut time = Time{
+                    beat: beat,
+                    num: 0,
+                    den: 0
+                };
+                if let Some(ext) = time_it.next(){
+                    if ext.as_str() == "'"{
+                        time.num = 1;
+                        time.den = 2;
+                    }else{
+                        let mut nums = ext.into_inner();
+                        time.num = nums.next().unwrap().as_str().parse::<u8>().unwrap();
+                        time.den = nums.next().unwrap().as_str().parse::<u8>().unwrap();
+                    }
+                }
+                out.time = Some(time);
             },
             _ => unreachable!()
         }

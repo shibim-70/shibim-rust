@@ -96,8 +96,8 @@ markup::define!{
                     @for bar in vec{
                         span ."u-b" {
                             @if let Bar::Bar(blocks) = bar {
-                                span ."u-o" {
-                                    @for block in blocks{
+                                @for block in blocks{
+                                    span ."u-o" {
                                         mark{
                                             { ChordBlockHTML{ chord_block : block } }
                                         }
@@ -151,7 +151,17 @@ markup::define!{
                 }
             }
         }
-        u .r { {markup::raw(u8_to_tonic_html(chord.root,true))} }
+        
+        @if chord.opt{
+            u .r .opt {
+                {markup::raw(u8_to_tonic_html(chord.root,true))}
+            }
+        }else {
+            u .r {
+                {markup::raw(u8_to_tonic_html(chord.root,true))}
+            }
+        }
+        
         @if chord.min {
             {"m"}
         }
@@ -164,7 +174,7 @@ markup::define!{
                         "M" | "Maj" | "maj" =>{
                             {"Δ"}
                         }
-                        "sus4" | "sus2" | "add4"| "add2" |"13" | "11" | "7" =>{
+                        "sus4" | "sus2" | "add4"| "add2" |"13" |"11" | "7" | "9" =>{
                             span .c { {s} }
                         }
                         _ => { {s} }
@@ -175,7 +185,7 @@ markup::define!{
         }
 
         @if chord.bass != chord.root{
-            sub { "/" u .r {{markup::raw(u8_to_tonic_html(chord.bass,false))}} }
+            sub { "/" u .r {{markup::raw(u8_to_tonic_html(chord.bass,true))}} }
         }
     }
 
@@ -190,7 +200,13 @@ markup::define!{
                 } else {false};
             @match chord_item{
                 ChordItem::Chord(c) => { {ChordHTML{ chord: c} } @if !antecedes_parens {" "} }
-                ChordItem::Melody(_v) => { /*TODO*/ }
+                ChordItem::Melody(v) => { 
+                    span ."u-ml"{
+                        @for note in v{
+                            {markup::raw(u8_to_tonic_html(*note, true))} " "
+                        }
+                    }
+                 }
                 ChordItem::Nonmusic(s) => { {s}  @if !antecedes_parens {" "} }
                 ChordItem::ParensClose => { ")"  }
                 ChordItem::ParensOpen => { "(" }

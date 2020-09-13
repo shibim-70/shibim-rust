@@ -47,15 +47,20 @@ pub struct Chord<'i>{
     #[serde(borrow)]
     #[serde(rename = "x")] 
     pub ext: Vec<ChordExt<'i>>,
+    #[serde(rename = "t")] 
     pub time: Option<Time>,
+    #[serde(rename = "?")] 
+    pub opt: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(rename = "t")]
+#[serde(rename = "T")]
 pub struct Time{
-    #[serde(rename = "r")] 
+    #[serde(rename = "0")] 
     pub beat: u8,
+    #[serde(rename = "1")] 
     pub num: u8,
+    #[serde(rename = "2")] 
     pub den: u8,
 }
 
